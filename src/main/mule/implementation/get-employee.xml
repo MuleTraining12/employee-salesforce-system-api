@@ -32,6 +32,7 @@ WHERE Email__c = ':Email__c']]></salesforce:salesforce-query>
 	"Email__c": vars.Email
 }]]]></salesforce:parameters>
 		</salesforce:query>
+		<logger level="INFO" doc:name="Logger" doc:id="9bf1dd3d-4cf5-40f0-add3-634518ae0018" message="Salesforce Response Data"/>
 		<choice doc:name="Choice" doc:id="9f978895-67d1-490a-a90a-96559e39f6d1" >
 			<when expression="#[!isEmpty(payload)]">
 				<ee:transform doc:name="Transform Message" doc:id="e4dc7d36-65c5-4e25-8b52-1fd11d7f10e5" >

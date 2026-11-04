@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<sub-flow name="put-employee-by-email-subflow" doc:id="fce767f2-fead-4869-ac16-a366642444e3" >
+		<logger level="INFO" doc:name="DEBUG" doc:id="a547a645-f7af-4a94-ad6b-cffb6b94994b" message='Request Payload: #[payload]'/>
+		<ee:transform doc:name="Transform Message" doc:id="be5a03fd-08a5-462b-b87c-f5539f5183f9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+    Phone_Number__c: payload.phoneNumber,
+    "Id": payload.Id,
+    Email__c: attributes.queryParams.email,
+    Job_Role__c: payload.jobRole,
+    Department__c: payload.department,
+    Reporting_Manage__c: payload.manager,
+    Salary__c: payload.salary,
+    Experience_Years__c: payload.experience,
+    Employee_Level__c: payload.employeeLevel,
+    Employee_Grade__c: payload.grade,
+    City__c: payload.city,
+    Country__c: payload.country,
+    Employee_Status__c: payload.status
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:update doc:name="Update" doc:id="328cdbda-5aad-4550-a76f-3a72f6bd3335" config-ref="Salesforce_Config" type="Employee_Registration_API__c"/>
+		<choice doc:name="Choice" doc:id="967d8ba6-2448-483a-bec4-79bdfa6b28c0" >
+			<when expression="#[payload.successful == true]">
+				<ee:transform doc:name="Transform Message" doc:id="5a5773bf-a2df-4715-81c8-f5cdda6a6201" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": payload.items[0].id
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Log  Salesforce Id" doc:id="d2d0ce37-3e4a-439e-8989-32199860ef43" message="Salesforce Reposne: #[payload]"/>
+				<set-variable value="#[204]" doc:name="Set Status Code" doc:id="c9815dad-b7cc-497a-aec9-61245808e4e8" variableName="httpStatus"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="3e3339aa-08e3-41fe-b68a-c9a792a08020" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": payload.items[0].message
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="eb4f6642-6c86-4f75-a8d5-9440840e517e" message="#[payload]"/>
+				<raise-error doc:name="BUSINESS:BAD_REQUEST" doc:id="54a58354-fa37-4449-abe3-499c72ae61e7" type="BUSINESS:BAD_REQUEST" description="BAD_REQUEST"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

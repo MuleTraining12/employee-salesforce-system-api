@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get-employee-by-email" doc:id="0ce9b9c1-45e1-42af-a0dd-54d538ae64d9" >
+		<logger level="INFO" doc:name="Logger" doc:id="81977077-ddc1-4f85-8476-c7a701a5cb84" message='Emailid : #[attributes.queryParams.email]'/>
+		<set-variable value="#[attributes.queryParams.email]" doc:name="Set Email" doc:id="0e556144-938c-4c63-9895-0e09095e6e1f" variableName="Email"/>
+		<salesforce:query doc:name="Query" doc:id="0212af42-b86d-4620-8ea4-3fb7159a9dd7" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[SELECT
+    Aadhaar_Number__c,
+    City__c,
+    Country__c,
+    Department__c,
+    Email__c,
+    Employee_Grade__c,
+    Employee_Level__c,
+    Id,
+    Employee_Status__c,
+    Experience_Years__c,
+    Gender__c,
+    Job_Role__c,
+    Name,
+    Phone_Number__c,
+    Reporting_Manage__c,
+    Salary__c
+FROM Employee_Registration_API__c
+WHERE Email__c = ':Email__c']]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[{
+	"Email__c": vars.Email
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<choice doc:name="Choice" doc:id="9f978895-67d1-490a-a90a-96559e39f6d1" >
+			<when expression="#[!isEmpty(payload)]">
+				<ee:transform doc:name="Transform Message" doc:id="e4dc7d36-65c5-4e25-8b52-1fd11d7f10e5" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="794271b6-ae2d-410a-819d-93d557066fd3" message="Salesforce Response Payload : #[payload]"/>
+				<set-variable value="#[200]" doc:name="Set Variable" doc:id="0b05ca78-2d82-4399-a38e-af7dee8fd8ef" variableName="httpStatus"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="bfb20b27-1163-449f-9399-55d032ceb2f4" type="BUSINESS:NOT_FOUND" description="Employee Not Found"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

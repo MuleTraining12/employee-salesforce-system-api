@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="4fc10f7b-9920-4384-bdc3-aae94dc378f3" >
+		<salesforce:basic-connection username="${secure::salesforce.username}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.securitytoken}" url="${salesforce.authrizationurl}" />
+	</salesforce:sfdc-config>
+	<sub-flow name="post-employee-subflow" doc:id="aac19e66-0a18-4801-aada-14ba936b7388" >
+		<logger level="INFO" doc:name="DEBUG" doc:id="48a5edec-3c00-4a06-b569-edda215a8fa1" message="Log the Request Payload: #[payload]"/>
+		<set-variable value="#[payload]" doc:name="Set employeeData" doc:id="5813c69c-f9ac-4822-a287-3ab6003a5641" variableName="employeeData"/>
+		<ee:transform doc:name="Map SFDC Request" doc:id="e7c96a77-f746-46d3-b5a0-7f396ad7937f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+    Name: payload.employeeName,
+    Email__c: payload.email,
+    Phone_Number__c: payload.phoneNumber,
+    Gender__c: payload.gender,
+    Aadhaar_Number__c: payload.aadhaarNumber,
+    Job_Role__c: payload.jobRole,
+    Department__c: payload.department,
+    Reporting_Manage__c: payload.manager,
+    Salary__c: payload.salary,
+    Experience_Years__c: payload.experience,
+    Employee_Level__c: payload.employeeLevel,
+    Employee_Grade__c: payload.grade,
+    City__c: payload.city,
+    Country__c: payload.country,
+    Employee_Status__c: payload.status
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Mapping Data" doc:id="185e2fe7-ff39-4deb-891b-3e30213ab038" message="Atter mapping : #[payload]"/>
+		<salesforce:create doc:name="Create" doc:id="9a98ef49-779f-4bca-9ce2-7aea86d07631" config-ref="Salesforce_Config" type="Employee_Registration_API__c"/>
+		<choice doc:name="Choice" doc:id="7902ef47-0ba5-40bf-a413-3f9e30d550de" >
+			<when expression="#[payload.successful == true]">
+				<ee:transform doc:name="Transform Message" doc:id="c4919345-da38-40d7-980f-dbe9e52bfdd0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": payload.items[0].id
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="364e7577-fcc8-4beb-a9a4-640263582998" message="Salesforce Reposne: #[payload]"/>
+				<set-variable value="#[201]" doc:name="Set Variable" doc:id="777cf417-0990-4247-9283-36affda7601d" variableName="httpStatus"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="5ddc9939-3e87-49cc-9e9d-a61fd4a1d9db">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="errormessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": payload.items[0].message
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<raise-error doc:name="BUSINESS:BAD_REQUEST" doc:id="7085f57e-3c5d-48d8-bd76-581cb8c80950" type="BUSINESS:BAD_REQUEST" description="BAD_REQUEST"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

@@ -1,0 +1,21 @@
+%dw 2.0
+
+type auto_0ce9b9c1_45e1_42af_a0dd_54d538ae64d9_Output_Payload = {
+  employeeName: String, 
+  country: String, 
+  gender: "Male" | "Female" | "Other", 
+  manager: String, 
+  city: String, 
+  salary: String, 
+  experience: Number, 
+  employeeLevel: "L1" | "L2" | "L3" | "L4" | "L5", 
+  aadhaarNumber: String, 
+  phoneNumber: String, 
+  grade: "G7" | "G8" | "G9" | "G5" | "G6", 
+  jobRole: "Java Developer" | "QA Engineer" | "DevOps Engineer" | "MuleSoft Developer", 
+  department: "Integration" | "Development" | "Infrastructure" | "Testing", 
+  email: String, 
+  status: "Active" | "Inactive", 
+  _?: Any
+}
+

@@ -7,7 +7,7 @@
 	<version>1.0.4</version>
 	<packaging>mule-application</packaging>
 
-	<name>employee-salesforce-system-api-appp</name>
+	<name>employee-salesforce-system-api</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,7 +30,7 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<classifier>---- select project type ----</classifier>
+					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
 		</plugins>
